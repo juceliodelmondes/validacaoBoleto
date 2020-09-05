@@ -48,7 +48,7 @@ module.exports = {
             
             //Passo C Divida o total encontrado por 10, a fim de determinar o resto da divisão:
             //==================================
-            let restoCampo1 = campo1Somado % 10
+            let restoCampo1 = campo1Somado % 10 
             let restoCampo2 = campo2Somado % 10
             let restoCampo3 = campo3Somado % 10
 
@@ -58,6 +58,7 @@ module.exports = {
             let dezenaPosteriorCampo1 = parseInt(campo1Somado.toString().slice(0,1)+"0")+10; //captura o primeiro algarismo e concatena com 0, depois soma mais 10 e converte para int
             let dezenaPosteriorCampo2 = parseInt(campo2Somado.toString().slice(0,1)+"0")+10;
             let dezenaPosteriorCampo3 = parseInt(campo3Somado.toString().slice(0,1)+"0")+10;
+
             
             //Substraindo dezena posterior com resto e capturando segundo algarismo (D.V)
             let dvCampo1Calculo = parseInt(parseInt(dezenaPosteriorCampo1-restoCampo1).toString().slice(1,2));
@@ -69,9 +70,14 @@ module.exports = {
                 obj.mensagem = "Boleto válido";
                 obj.valido = true;
             }
+
+            //Calculando valor do boleto
+            //Divide por 100 para separar os centavos                 
+            obj.valor = (code.slice(37, 47)/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(45, 47).toString();
+
         } else if(code.length == 48) { //boleto convenio com 48 dígitos
             
-        } 
+        }
         return obj;
     }
 }
