@@ -52,34 +52,27 @@ module.exports = {
             let dvCampo1Calculo = parseInt(parseInt(dezenaPosteriorCampo1-restoCampo1).toString().slice(1,2));
             let dvCampo2Calculo = parseInt(parseInt(dezenaPosteriorCampo2-restoCampo2).toString().slice(1,2));
             let dvCampo3Calculo = parseInt(parseInt(dezenaPosteriorCampo3-restoCampo3).toString().slice(1,2));
-            //Se o digito verificador que ele capturou for igual 
-            if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3) {
+            if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3) { //se os quatros digitos verificadors estiverem válidos
                 let codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
-                obj.codigoBarra = codigoBarra;
-                console.log(this.validarDVGeral(codigoBarra));
-                //Digitos de cada campo válido
-                //Validar código geral a partir do código de barra
-                //gereando código de barra
-                /*
-                obj.mensagem = "Boleto válido";
-                obj.valido = true;
-
-                 //Calculando valor do boleto
-                //Divide por 100 para separar os centavos                 
-                obj.valor = (code.slice(37, 47)/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(45, 47)
-                
-                //Cálculo de vencimento
-                if(fatorVencimento !== 0000) {
-                    let dataBase = new Date("1997/10/07");
-                    //soma os dias totais capturados com a data base declarada acima
-                    dataBase.setDate(dataBase.getDate() + fatorVencimento) 
-                    //captura a nova data somada (dava vencimento)
-                    const dia = dataBase.getDate();
-                    const mes = dataBase.getMonth();
-                    const ano = dataBase.getFullYear();
-                    obj.dataVencimento = dia+"/"+(mes+1)+"/"+ano;
-                }*/
-                
+                if(this.validarDVGeral(codigoBarra)) { //Valida o digito geral do codigo de barras
+                    obj.mensagem = "Boleto válido";
+                    obj.valido = true;
+                    obj.codigoBarra = codigoBarra;
+                     //Calculando valor do boleto
+                    //Divide por 100 para separar os centavos                 
+                    obj.valor = (code.slice(37, 47)/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(45, 47);
+                    //Cálculo de vencimento
+                    if(fatorVencimento !== 0000) {
+                        let dataBase = new Date("1997/10/07");
+                        //soma os dias totais capturados com a data base declarada acima
+                        dataBase.setDate(dataBase.getDate() + fatorVencimento) ;
+                        //captura a nova data somada (dava vencimento)
+                        const dia = dataBase.getDate();
+                        const mes = dataBase.getMonth();
+                        const ano = dataBase.getFullYear();
+                        obj.dataVencimento = dia+"/"+(mes+1)+"/"+ano;
+                    }
+                }
             }
         } else if(code.length == 48) { //boleto convenio com 48 dígitos
             const campo1 = code.slice(0, 11);
@@ -161,8 +154,6 @@ module.exports = {
         //Valida o quinto dígito do codigo de barra com o cálculo
         let codigoDVGeral = parseInt(codigoBarraCompleto.slice(4, 5));
         let codigoBarraSemDV = (codigoBarraCompleto.slice(0, 4)+codigoBarraCompleto.slice(5, codigoBarraCompleto.length)).split("");
-        console.log("A");
-        console.log(codigoBarraSemDV)
         let proximoNum = 2; //de 2 a 9 (multiplicador)
         let resultadoSoma = 0;
         for(i = codigoBarraSemDV.length-1; i >= 0; i--) {
