@@ -89,8 +89,26 @@ module.exports = {
 
             const campo4 = code.slice(36, 47);
             const dvCampo4 = code.slice(47, 48);
+            let resultadoMultiplicacaoCampo1 = this.multiplicacaoDv(campo1);
+            let resultadoMultiplicacaoCampo2 = this.multiplicacaoDv(campo2);
+            let resultadoMultiplicacaoCampo3 = this.multiplicacaoDv(campo3);
+            let resultadoMultiplicacaoCampo4 = this.multiplicacaoDv(campo4);
+            //soma todos os algarismos do resultado da multiplicação
+            let campo1Somado = 0, campo2Somado = 0, campo3Somado = 0, campo4Somado = 0;
+            resultadoMultiplicacaoCampo1.map(result => campo1Somado+=result);
+            resultadoMultiplicacaoCampo2.map(result => campo2Somado+=result);
+            resultadoMultiplicacaoCampo3.map(result => campo3Somado+=result);
+            resultadoMultiplicacaoCampo4.map(result => campo4Somado+=result);
+            //captura o resto da divisao para depois subtrair com 10
+            let dvCampo1Calculo = 10 - parseInt(campo1Somado % 10)
+            let dvCampo2Calculo = 10 - parseInt(campo2Somado % 10)
+            let dvCampo3Calculo = 10 - parseInt(campo3Somado % 10)
+            let dvCampo4Calculo = 10 - parseInt(campo4Somado % 10)
+            console.log(dvCampo1Calculo);
+            console.log(dvCampo2Calculo);
+            console.log(dvCampo3Calculo);
+            console.log(dvCampo4Calculo);
 
-            
         }
         return obj;
     },
