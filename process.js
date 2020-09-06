@@ -111,18 +111,6 @@ module.exports = {
             if(restoDVCampo2 > 0) dvCampo2Calculo = 10 - restoDVCampo2;
             if(restoDVCampo3 > 0) dvCampo3Calculo = 10 - restoDVCampo3;
             if(restoDVCampo4 > 0) dvCampo4Calculo = 10 - restoDVCampo4;
-
-            console.log(dvCampo1Calculo)
-            console.log(dvCampo1)
-
-            console.log(dvCampo2Calculo);
-            console.log(dvCampo2);
-
-            console.log(dvCampo3Calculo);
-            console.log(dvCampo3);
-
-            console.log(dvCampo4Calculo);
-            console.log(dvCampo4)
             if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3 && dvCampo4Calculo === dvCampo4) {
                 console.log("Código DV válido")
                 //Validacao do quarto dígito - MODULO 10 - página 15 do arquivo Convenio.pdf
@@ -140,6 +128,7 @@ module.exports = {
                     console.log("Segunda validação OK");
                     obj.mensagem="Boleto válido!";
                     obj.valido = true;
+                    obj.valor = ((code.slice(5, 11)+code.slice(12, 16))/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(14, 16);
                 }
             }
         }
