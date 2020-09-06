@@ -24,22 +24,11 @@ module.exports = {
             let dvCampo3 = parseInt(code.slice(31, 32));
             let campos = (campo1+campo2+campo3).split("").map(Number); //Numeros dos campos sem o D.V de cada um. Necessário para calcular e validar se é gual ao d.v retirado acima
             let fatorVencimento = parseInt(code.slice(33, 37))
-            let resultadoMultiplicacao = [];
+            
 
             //passo A (arquivo titulo.pdf) Multiplicando a sequência dos campos pelos multiplicadores, iniciando por 2 da direita para a esquerda:
-            for(i = campos.length-1; i >= 0; i--) { //percorre os numeros dos campos sem o D.V para multiplicar
-                if(i % 2 == 0) {
-                    /*Verifica se o I é par ou não, este algoritmo será para aplicar a divisao na ordem (divide por 2 e depois por 1)*/
-                    let temp = campos[i]*2; //multiplica por 2
-                    if(temp > 9) {
-                        //somar os dois algarismos
-                        let algarismo1 = parseInt(temp.toString().slice(0, 1));
-                        let algarismo2 = parseInt(temp.toString().slice(1, 2));
-                        temp = algarismo1+algarismo2;
-                    }
-                    resultadoMultiplicacao.unshift(parseInt(temp)); //adiciona no começo da array
-                } else resultadoMultiplicacao.unshift(campos[i]*1); //adiciona sempre no começo da array
-            }
+            
+            let resultadoMultiplicacao = this.multiplicacaoDv(campos);
             //Passo B (arquivo titulo.pdf) Some, individualmente, os algarismos dos resultados do produtos:
             //========================================================
             let campo1Somado = 0, campo2Somado = 0, campo3Somado = 0;
@@ -88,8 +77,38 @@ module.exports = {
                 obj.codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
             }
         } else if(code.length == 48) { //boleto convenio com 48 dígitos
+            console.log('48 digitos')
+            const campo1 = code.slice(0, 11);
+            const dvCampo1 = code.slice(11, 12);
+
+            const campo2 = code.slice(12, 23);
+            const dvCampo2 = code.slice(23, 24)
+
+            const campo3 = code.slice(24,35);
+            const dvCampo3 = code.slice(35, 36);
+
+            const campo4 = code.slice(36, 47);
+            const dvCampo4 = code.slice(47, 48);
+
             
         }
         return obj;
+    },
+    multiplicacaoDv(sequencia) {
+        let resultadoMultiplicacao = [];
+        for(i = sequencia.length-1; i >= 0; i--) { //percorre os numeros dos campos sem o D.V para multiplicar
+            if(i % 2 == 0) {
+                /*Verifica se o I é par ou não, este algoritmo será para aplicar a divisao na ordem (divide por 2 e depois por 1)*/
+                let temp = sequencia[i]*2; //multiplica por 2
+                if(temp > 9) {
+                    //somar os dois algarismos
+                    let algarismo1 = parseInt(temp.toString().slice(0, 1));
+                    let algarismo2 = parseInt(temp.toString().slice(1, 2));
+                    temp = algarismo1+algarismo2;
+                }
+                resultadoMultiplicacao.unshift(parseInt(temp)); //adiciona no começo da array
+            } else resultadoMultiplicacao.unshift(sequencia[i]*1); //adiciona sempre no começo da array
+        }
+        return resultadoMultiplicacao;
     }
 }
