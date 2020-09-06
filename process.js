@@ -24,11 +24,9 @@ module.exports = {
             let dvCampo3 = parseInt(code.slice(31, 32));
             let campos = (campo1+campo2+campo3).split("").map(Number); //Numeros dos campos sem o D.V de cada um. Necessário para calcular e validar se é gual ao d.v retirado acima
             let fatorVencimento = parseInt(code.slice(33, 37))
-            console.log(fatorVencimento)
             let resultadoMultiplicacao = [];
 
             //passo A (arquivo titulo.pdf) Multiplicando a sequência dos campos pelos multiplicadores, iniciando por 2 da direita para a esquerda:
-
             for(i = campos.length-1; i >= 0; i--) { //percorre os numeros dos campos sem o D.V para multiplicar
                 if(i % 2 == 0) {
                     /*Verifica se o I é par ou não, este algoritmo será para aplicar a divisao na ordem (divide por 2 e depois por 1)*/
@@ -56,12 +54,10 @@ module.exports = {
             let restoCampo3 = campo3Somado % 10
 
             //Passo D Subtrair o “resto” apurado pela dezena imediatamente posterior. O resultado será igual ao DV
-            //=========================
-            
+            //=========================            
             let dezenaPosteriorCampo1 = parseInt(campo1Somado.toString().slice(0,1)+"0")+10; //captura o primeiro algarismo e concatena com 0, depois soma mais 10 e converte para int
             let dezenaPosteriorCampo2 = parseInt(campo2Somado.toString().slice(0,1)+"0")+10;
             let dezenaPosteriorCampo3 = parseInt(campo3Somado.toString().slice(0,1)+"0")+10;
-
             
             //Substraindo dezena posterior com resto e capturando segundo algarismo (D.V)
             let dvCampo1Calculo = parseInt(parseInt(dezenaPosteriorCampo1-restoCampo1).toString().slice(1,2));
@@ -75,7 +71,7 @@ module.exports = {
 
                  //Calculando valor do boleto
                 //Divide por 100 para separar os centavos                 
-                obj.valor = (code.slice(37, 47)/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(45, 47).toString();
+                obj.valor = (code.slice(37, 47)/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(45, 47)
                 
                 //Cálculo de vencimento
                 if(fatorVencimento !== 0000) {
@@ -88,10 +84,9 @@ module.exports = {
                     const ano = dataBase.getFullYear();
                     obj.dataVencimento = dia+"/"+(mes+1)+"/"+ano;
                 }
+                //gereando código de barra
+                obj.codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
             }
-
-           
-
         } else if(code.length == 48) { //boleto convenio com 48 dígitos
             
         }
