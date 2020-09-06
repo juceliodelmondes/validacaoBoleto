@@ -77,18 +77,19 @@ module.exports = {
                 obj.codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
             }
         } else if(code.length == 48) { //boleto convenio com 48 dígitos
-            console.log('48 digitos')
             const campo1 = code.slice(0, 11);
-            const dvCampo1 = code.slice(11, 12);
+            const dvCampo1 = parseInt(code.slice(11, 12));
 
             const campo2 = code.slice(12, 23);
-            const dvCampo2 = code.slice(23, 24)
+            const dvCampo2 = parseInt(code.slice(23, 24));
 
             const campo3 = code.slice(24,35);
-            const dvCampo3 = code.slice(35, 36);
+            const dvCampo3 = parseInt(code.slice(35, 36));
 
             const campo4 = code.slice(36, 47);
-            const dvCampo4 = code.slice(47, 48);
+            const dvCampo4 = parseInt(code.slice(47, 48));
+            //Primeira validacao (MODULO 10)
+            //Validação dos quatros dígitos (DV) - página 14 do arquivo Convenio.pdf
             let resultadoMultiplicacaoCampo1 = this.multiplicacaoDv(campo1);
             let resultadoMultiplicacaoCampo2 = this.multiplicacaoDv(campo2);
             let resultadoMultiplicacaoCampo3 = this.multiplicacaoDv(campo3);
@@ -104,11 +105,22 @@ module.exports = {
             let dvCampo2Calculo = 10 - parseInt(campo2Somado % 10)
             let dvCampo3Calculo = 10 - parseInt(campo3Somado % 10)
             let dvCampo4Calculo = 10 - parseInt(campo4Somado % 10)
-            console.log(dvCampo1Calculo);
-            console.log(dvCampo2Calculo);
-            console.log(dvCampo3Calculo);
-            console.log(dvCampo4Calculo);
-
+            if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3 && dvCampo4Calculo === dvCampo4) {
+                console.log("Código DV válido")
+                //Validacao do quarto dígito - MODULO 10 - página 15 do arquivo Convenio.pdf
+                //SV = Segunda validação
+                let campo1SV = code.slice(0,3); //SV = campo 1 de segunda validação
+                let dv = parseInt(code.slice(3, 4)); //digito 
+                let campo2SV = code.slice(4, 11)+campo2+campo3+campo4 //campo restante sem o DV 
+                let resultadoMultiplicacaoSV = this.multiplicacaoDv(campo1SV+campo2SV);
+                let campoSomadoSV = 0;
+                resultadoMultiplicacaoSV.map(result => {campoSomadoSV += result})
+                let dvCampoSV = 10 - parseInt(campoSomadoSV % 10)
+                if(dvCampoSV === dv) {
+                    console.log("Segunda validação OK");
+                    //Inicio da terceira validacao - MODULO 11 - página 16 do arquivo Convenio.pdf
+                }
+            }
         }
         return obj;
     },
