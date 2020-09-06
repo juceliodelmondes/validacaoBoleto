@@ -54,7 +54,13 @@ module.exports = {
             let dvCampo3Calculo = parseInt(parseInt(dezenaPosteriorCampo3-restoCampo3).toString().slice(1,2));
             //Se o digito verificador que ele capturou for igual 
             if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3) {
-                console.log("Boleto válido!");
+                let codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
+                obj.codigoBarra = codigoBarra;
+                console.log(this.validarDVGeral(codigoBarra));
+                //Digitos de cada campo válido
+                //Validar código geral a partir do código de barra
+                //gereando código de barra
+                /*
                 obj.mensagem = "Boleto válido";
                 obj.valido = true;
 
@@ -72,9 +78,8 @@ module.exports = {
                     const mes = dataBase.getMonth();
                     const ano = dataBase.getFullYear();
                     obj.dataVencimento = dia+"/"+(mes+1)+"/"+ano;
-                }
-                //gereando código de barra
-                obj.codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
+                }*/
+                
             }
         } else if(code.length == 48) { //boleto convenio com 48 dígitos
             const campo1 = code.slice(0, 11);
@@ -112,7 +117,7 @@ module.exports = {
             if(restoDVCampo3 > 0) dvCampo3Calculo = 10 - restoDVCampo3;
             if(restoDVCampo4 > 0) dvCampo4Calculo = 10 - restoDVCampo4;
             if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3 && dvCampo4Calculo === dvCampo4) {
-                console.log("Código DV válido")
+                console.log("Código verificadores válido!")
                 //Validacao do quarto dígito - MODULO 10 - página 15 do arquivo Convenio.pdf
                 //SV = Segunda validação
                 let campo1SV = code.slice(0,3); //SV = campo 1 de segunda validação
@@ -129,6 +134,7 @@ module.exports = {
                     obj.mensagem="Boleto válido!";
                     obj.valido = true;
                     obj.valor = ((code.slice(5, 11)+code.slice(12, 16))/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(14, 16);
+                    obj.codigoBarra = campo1+campo2+campo3+campo4
                 }
             }
         }
@@ -150,5 +156,22 @@ module.exports = {
             } else resultadoMultiplicacao.unshift(sequencia[i]*1); //adiciona sempre no começo da array
         }
         return resultadoMultiplicacao;
+    },
+    validarDVGeral(codigoBarraCompleto) {
+        //Valida o quinto dígito do codigo de barra com o cálculo
+        let codigoDVGeral = parseInt(codigoBarraCompleto.slice(4, 5));
+        let codigoBarraSemDV = (codigoBarraCompleto.slice(0, 4)+codigoBarraCompleto.slice(5, codigoBarraCompleto.length)).split("");
+        console.log("A");
+        console.log(codigoBarraSemDV)
+        let proximoNum = 2; //de 2 a 9 (multiplicador)
+        let resultadoSoma = 0;
+        for(i = codigoBarraSemDV.length-1; i >= 0; i--) {
+            resultadoSoma += (codigoBarraSemDV[i] * proximoNum) //multiplica e soma
+            if(proximoNum == 9) proximoNum=2; else if(proximoNum < 9) proximoNum++;
+        }
+        let resto = resultadoSoma % 11;
+        let resultadoDV = parseInt(11 - resto)
+        if(resultadoDV === 0 || resultadoDV === 10 || resultadoDV === 11) resultadoDV = 1; //REGRA I) da página 14 - PDF Titulo.pdf
+        if(codigoDVGeral === resultadoDV) return true; else return false;
     }
 }
