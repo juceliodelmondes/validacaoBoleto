@@ -23,7 +23,10 @@ module.exports = {
             let campo3 = code.slice(21, 31);
             let dvCampo3 = parseInt(code.slice(31, 32));
             let campos = (campo1+campo2+campo3).split("").map(Number); //Numeros dos campos sem o D.V de cada um. Necessário para calcular e validar se é gual ao d.v retirado acima
+            let fatorVencimento = parseInt(code.slice(33, 37))
+            console.log(fatorVencimento)
             let resultadoMultiplicacao = [];
+
             //passo A (arquivo titulo.pdf) Multiplicando a sequência dos campos pelos multiplicadores, iniciando por 2 da direita para a esquerda:
 
             for(i = campos.length-1; i >= 0; i--) { //percorre os numeros dos campos sem o D.V para multiplicar
@@ -69,11 +72,25 @@ module.exports = {
                 console.log("Boleto válido!");
                 obj.mensagem = "Boleto válido";
                 obj.valido = true;
+
+                 //Calculando valor do boleto
+                //Divide por 100 para separar os centavos                 
+                obj.valor = (code.slice(37, 47)/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(45, 47).toString();
+                
+                //Cálculo de vencimento
+                if(fatorVencimento !== 0000) {
+                    let dataBase = new Date("1997/10/07");
+                    //soma os dias totais capturados com a data base declarada acima
+                    dataBase.setDate(dataBase.getDate() + fatorVencimento) 
+                    //captura a nova data somada (dava vencimento)
+                    const dia = dataBase.getDate();
+                    const mes = dataBase.getMonth();
+                    const ano = dataBase.getFullYear();
+                    obj.dataVencimento = dia+"/"+(mes+1)+"/"+ano;
+                }
             }
 
-            //Calculando valor do boleto
-            //Divide por 100 para separar os centavos                 
-            obj.valor = (code.slice(37, 47)/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(45, 47).toString();
+           
 
         } else if(code.length == 48) { //boleto convenio com 48 dígitos
             
