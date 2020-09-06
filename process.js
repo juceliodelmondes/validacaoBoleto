@@ -101,10 +101,28 @@ module.exports = {
             resultadoMultiplicacaoCampo3.map(result => campo3Somado+=result);
             resultadoMultiplicacaoCampo4.map(result => campo4Somado+=result);
             //captura o resto da divisao para depois subtrair com 10
-            let dvCampo1Calculo = 10 - parseInt(campo1Somado % 10)
-            let dvCampo2Calculo = 10 - parseInt(campo2Somado % 10)
-            let dvCampo3Calculo = 10 - parseInt(campo3Somado % 10)
-            let dvCampo4Calculo = 10 - parseInt(campo4Somado % 10)
+            let restoDVCampo1 = parseInt(campo1Somado % 10)
+            let restoDVCampo2 = parseInt(campo2Somado % 10)
+            let restoDVCampo3 = parseInt(campo3Somado % 10)
+            let restoDVCampo4 = parseInt(campo4Somado % 10)
+            let dvCampo1Calculo = 0, dvCampo2Calculo = 0, dvCampo3Calculo = 0, dvCampo4Calculo = 0;
+            //Se o resto for 0, o numero não vai ser subtraído com 10
+            if(restoDVCampo1 > 0) dvCampo1Calculo = 10 - restoDVCampo1;
+            if(restoDVCampo2 > 0) dvCampo2Calculo = 10 - restoDVCampo2;
+            if(restoDVCampo3 > 0) dvCampo3Calculo = 10 - restoDVCampo3;
+            if(restoDVCampo4 > 0) dvCampo4Calculo = 10 - restoDVCampo4;
+
+            console.log(dvCampo1Calculo)
+            console.log(dvCampo1)
+
+            console.log(dvCampo2Calculo);
+            console.log(dvCampo2);
+
+            console.log(dvCampo3Calculo);
+            console.log(dvCampo3);
+
+            console.log(dvCampo4Calculo);
+            console.log(dvCampo4)
             if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3 && dvCampo4Calculo === dvCampo4) {
                 console.log("Código DV válido")
                 //Validacao do quarto dígito - MODULO 10 - página 15 do arquivo Convenio.pdf
@@ -115,10 +133,13 @@ module.exports = {
                 let resultadoMultiplicacaoSV = this.multiplicacaoDv(campo1SV+campo2SV);
                 let campoSomadoSV = 0;
                 resultadoMultiplicacaoSV.map(result => {campoSomadoSV += result})
-                let dvCampoSV = 10 - parseInt(campoSomadoSV % 10)
+                let restoDivisaoSV = parseInt(campoSomadoSV % 10);
+                dvCampoSV = 0;
+                if(restoDivisaoSV > 0) dvCampoSV = 10 - restoDivisaoSV;
                 if(dvCampoSV === dv) {
                     console.log("Segunda validação OK");
-                    //Inicio da terceira validacao - MODULO 11 - página 16 do arquivo Convenio.pdf
+                    obj.mensagem="Boleto válido!";
+                    obj.valido = true;
                 }
             }
         }
