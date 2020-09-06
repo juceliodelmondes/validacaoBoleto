@@ -54,7 +54,7 @@ module.exports = {
             let dvCampo3Calculo = parseInt(parseInt(dezenaPosteriorCampo3-restoCampo3).toString().slice(1,2));
             if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3) { //se os quatros digitos verificadors estiverem válidos
                 let codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
-                if(this.validarDVGeral(codigoBarra)) { //Valida o digito geral do codigo de barras
+                if(this.validarDVGeral(codigoBarra, 1)) { //Valida o digito geral do codigo de barras, parâmetro 1 (tipo boleto bancário)
                     obj.mensagem = "Boleto válido";
                     obj.valido = true;
                     obj.codigoBarra = codigoBarra;
@@ -124,10 +124,13 @@ module.exports = {
                 if(restoDivisaoSV > 0) dvCampoSV = 10 - restoDivisaoSV;
                 if(dvCampoSV === dv) {
                     console.log("Segunda validação OK");
-                    obj.mensagem="Boleto válido!";
-                    obj.valido = true;
-                    obj.valor = ((code.slice(5, 11)+code.slice(12, 16))/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(14, 16);
-                    obj.codigoBarra = campo1+campo2+campo3+campo4
+                    let codigoBarra = campo1+campo2+campo3+campo4;
+                    if(this.validarDVGeralConvenio(codigoBarra)) { //terceira validacao, validando o quarto dígito a partir da sequencia numérica
+                        obj.mensagem="Boleto válido!";
+                        obj.valido = true;
+                        obj.valor = ((code.slice(5, 11)+code.slice(12, 16))/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(14, 16);
+                        obj.codigoBarra = campo1+campo2+campo3+campo4
+                    }
                 }
             }
         }
@@ -151,18 +154,42 @@ module.exports = {
         return resultadoMultiplicacao;
     },
     validarDVGeral(codigoBarraCompleto) {
+        //Tipo boleto 1 == Boleto bancario, tipoBoleto 2 == boleto convenio
         //Valida o quinto dígito do codigo de barra com o cálculo
         let codigoDVGeral = parseInt(codigoBarraCompleto.slice(4, 5));
         let codigoBarraSemDV = (codigoBarraCompleto.slice(0, 4)+codigoBarraCompleto.slice(5, codigoBarraCompleto.length)).split("");
+        console.log("Codigo barra sem DV "+codigoBarraSemDV)
         let proximoNum = 2; //de 2 a 9 (multiplicador)
         let resultadoSoma = 0;
         for(i = codigoBarraSemDV.length-1; i >= 0; i--) {
-            resultadoSoma += (codigoBarraSemDV[i] * proximoNum) //multiplica e soma
+            let mult = codigoBarraSemDV[i] * proximoNum
+            resultadoSoma += (mult) //multiplica e soma
+            console.log("Multiplicando "+codigoBarraSemDV[i]+" por "+proximoNum+" resultado "+mult)
             if(proximoNum == 9) proximoNum=2; else if(proximoNum < 9) proximoNum++;
         }
+        console.log("resultado soma "+resultadoSoma)
         let resto = resultadoSoma % 11;
         let resultadoDV = parseInt(11 - resto)
         if(resultadoDV === 0 || resultadoDV === 10 || resultadoDV === 11) resultadoDV = 1; //REGRA I) da página 14 - PDF Titulo.pdf
         if(codigoDVGeral === resultadoDV) return true; else return false;
+    },
+    validarDVGeralConvenio(codigoBarraCompleto) {
+        //Tipo boleto 1 == Boleto bancario, tipoBoleto 2 == boleto convenio
+        //Valida o quinto dígito do codigo de barra com o cálculo
+        codigoDVGeral = parseInt(codigoBarraCompleto.slice(3,4));
+        console.log("Codigo Dv geral "+codigoDVGeral)
+        codigoBarraCompleto = codigoBarraCompleto.split("");
+        let proximoNum = 2; //de 2 a 9 (multiplicador)
+        let resultadoSoma = 0;
+        for(i = codigoBarraCompleto.length-1; i >= 0; i--) {
+            let mult = codigoBarraCompleto[i] * proximoNum
+            resultadoSoma += (mult) //multiplica e soma
+            console.log("Multiplicando "+codigoBarraCompleto[i]+" por "+proximoNum+" resultado "+mult)
+            if(proximoNum == 9) proximoNum=2; else if(proximoNum < 9) proximoNum++;
+        }
+        console.log("resultado soma "+resultadoSoma)
+        let resto = parseInt(resultadoSoma % 11);
+        console.log('RESTO encontrado '+resto)
+        if(resto === codigoDVGeral) return true; else return false;
     }
 }
