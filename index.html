@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+  <html>
+    <head>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta charset="UTF-8">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.min.js" integrity="sha512-quHCp3WbBNkwLfYUMd+KwBAgpVukJu5MncuQaWXgCrfgcxCJAq/fo+oqrRKOj+UKEmyMCG3tb8RB63W+EmrOBg==" crossorigin="anonymous"></script>
+        <style>
+            .imagem {
+                width: 100%;
+                height: 100%;
+                position:absolute;
+                transition:filter 1s linear;
+                filter:blur(5px);
+                background-image: url(https://wallpaperaccess.com/full/656670.jpg);
+                background-position: center; /* Center the image */
+                background-repeat: no-repeat; /* Do not repeat the image */
+                background-size: cover; /* Resize the background image to cover the entire container */
+            }
+
+            .imagem:hover {
+                transition:filter 1s linear;
+                filter: none;
+            }
+
+            .container {
+                display:flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+
+            
+            #cardCentral{
+                max-width: 1280px;
+                max-height: 720px;
+                width: 50%;
+                height: 50%;
+                min-width: 450px;
+                min-height: 450px;
+                z-index:1;
+                background-color:#e4eaeacf;
+            }
+
+            #cardCentral h4 {
+                text-align: center;
+            }
+
+            .input-field {
+                margin:10px;
+            }
+
+            #botaoValidar {
+                width: 100%;
+            }
+
+            #resultados {
+                text-align: center;
+            }
+
+            #valido {
+                color: #26a69a;
+            }
+
+            #invalido {
+                color: red;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="imagem"></div>
+        <div class="principal">
+            <div class="container">
+                <div id="cardCentral" class="card">
+                    <div class="row">
+                        <h4>Validação de boleto</h4>
+                    </div>
+                    <div class="row">
+                        <div class="input-field">
+                            <input type="text" id="codigo"></input>
+                            <label for="codigo">Linha digitável:</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s4 offset-s4">
+                            <button class="btn waves-effect" id="botaoValidar" onclick="validar()">Validar</button>
+                        </div>
+                    </div>
+                    <div id="resultados">
+                        <div class="row">
+                            <div class="col s6">
+                                <h5 id="mensagemResultado">Boleto válido!</h5>
+                            </div>
+                            <div class="col s6" >
+                                <h5 id="valorResultado">Valor: R$3.000,00</h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col s12" >
+                                <h5 id="vencimentoResultado">Vencimento: 20/02/2000</h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col s12">
+                                <h6 id="codigoBarraResultado">Código de barra: 0123456789012345678901234567890123</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        const validar = () => {
+            let codigo = document.getElementById("codigo").value;
+            if(codigo !== null) {
+                let obj = {"code" : codigo}
+                axios.post("http://localhost:3000/validate", obj).then(result => {
+                    if(result.status == 200) {
+                        console.log(result.data)
+                        document.getElementById("mensagemResultado").innerHTML = result.data.mensagem
+                        document.getElementById("valorResultado").innerHTML = "Valor: "+result.data.valor
+                        document.getElementById("vencimentoResultado").innerHTML = "Vencimento: "+result.data.dataVencimento;
+                        document.getElementById("codigoBarraResultado").innerHTML = "Codigo de barra: "+result.data.codigoBarra;
+                        document.getElementById("codigo").value = result.data.linhaDigitavel;
+                    }
+                })
+            }
+        
+        }
+    </script>
+    </body>
+  </html>

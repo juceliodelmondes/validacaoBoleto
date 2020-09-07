@@ -1,18 +1,16 @@
 module.exports = {
     validate(code){ //code será a linha digitável
-        console.log(code);
-        code = code.replace(/ /g , "")
-        code = code.replace(/\./g, ""); // utlizando \. porque . é um caractere reservado para o regex
-        console.log(code)
+        code = this.formatarCodigo(code);
         //Regra de negócio para a validação
         //Variáveis inicializadas com mensagem de erro para evitar um código extenso. Em caso de sucesso, será alterada 
         let obj = {
             //objeto de retorno
-            "mensagem" : "Verifique o código digitado!",
+            "mensagem" : "Código inválido!",
             "valido" : false,
             "valor" : 0,
             "dataVencimento" : "",
-            "codigoBarra" : 0
+            "codigoBarra" : 0,
+            "linhaDigitavel" : code
         }
         if(code.length == 47) { //boleto bancário com 47 dígitos
             //separando por campos (total de 3 com DV) 
@@ -23,11 +21,8 @@ module.exports = {
             let campo3 = code.slice(21, 31);
             let dvCampo3 = parseInt(code.slice(31, 32));
             let campos = (campo1+campo2+campo3).split("").map(Number); //Numeros dos campos sem o D.V de cada um. Necessário para calcular e validar se é gual ao d.v retirado acima
-            let fatorVencimento = parseInt(code.slice(33, 37))
-            
-
+            let fatorVencimento = parseInt(code.slice(33, 37));
             //passo A (arquivo titulo.pdf) Multiplicando a sequência dos campos pelos multiplicadores, iniciando por 2 da direita para a esquerda:
-            
             let resultadoMultiplicacao = this.multiplicacaoDv(campos);
             //Passo B (arquivo titulo.pdf) Some, individualmente, os algarismos dos resultados do produtos:
             //========================================================
@@ -35,26 +30,23 @@ module.exports = {
             resultadoMultiplicacao.slice(0, 9).map(result => campo1Somado+=result);
             resultadoMultiplicacao.slice(9, 19).map(result => campo2Somado+=result);
             resultadoMultiplicacao.slice(19, 29).map(result => campo3Somado+=result);
-            
             //Passo C Divida o total encontrado por 10, a fim de determinar o resto da divisão:
             //==================================
             let restoCampo1 = campo1Somado % 10 
             let restoCampo2 = campo2Somado % 10
             let restoCampo3 = campo3Somado % 10
-
             //Passo D Subtrair o “resto” apurado pela dezena imediatamente posterior. O resultado será igual ao DV
             //=========================            
             let dezenaPosteriorCampo1 = parseInt(campo1Somado.toString().slice(0,1)+"0")+10; //captura o primeiro algarismo e concatena com 0, depois soma mais 10 e converte para int
             let dezenaPosteriorCampo2 = parseInt(campo2Somado.toString().slice(0,1)+"0")+10;
             let dezenaPosteriorCampo3 = parseInt(campo3Somado.toString().slice(0,1)+"0")+10;
-            
             //Substraindo dezena posterior com resto e capturando segundo algarismo (D.V)
             let dvCampo1Calculo = parseInt(parseInt(dezenaPosteriorCampo1-restoCampo1).toString().slice(1,2));
             let dvCampo2Calculo = parseInt(parseInt(dezenaPosteriorCampo2-restoCampo2).toString().slice(1,2));
             let dvCampo3Calculo = parseInt(parseInt(dezenaPosteriorCampo3-restoCampo3).toString().slice(1,2));
             if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3) { //se os quatros digitos verificadors estiverem válidos
                 let codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
-                if(this.validarDVGeral(codigoBarra, 1)) { //Valida o digito geral do codigo de barras, parâmetro 1 (tipo boleto bancário)
+                if(this.validarDVGeral(codigoBarra)) { //Valida o digito geral do codigo de barras, parâmetro 1 (tipo boleto bancário)
                     obj.mensagem = "Boleto válido";
                     obj.valido = true;
                     obj.codigoBarra = codigoBarra;
@@ -77,13 +69,10 @@ module.exports = {
         } else if(code.length == 48) { //boleto convenio com 48 dígitos
             const campo1 = code.slice(0, 11);
             const dvCampo1 = parseInt(code.slice(11, 12));
-
             const campo2 = code.slice(12, 23);
             const dvCampo2 = parseInt(code.slice(23, 24));
-
             const campo3 = code.slice(24,35);
             const dvCampo3 = parseInt(code.slice(35, 36));
-
             const campo4 = code.slice(36, 47);
             const dvCampo4 = parseInt(code.slice(47, 48));
             //Primeira validacao (MODULO 10)
@@ -110,11 +99,10 @@ module.exports = {
             if(restoDVCampo3 > 0) dvCampo3Calculo = 10 - restoDVCampo3;
             if(restoDVCampo4 > 0) dvCampo4Calculo = 10 - restoDVCampo4;
             if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3 && dvCampo4Calculo === dvCampo4) {
-                console.log("Código verificadores válido!")
                 //Validacao do quarto dígito - MODULO 10 - página 15 do arquivo Convenio.pdf
                 //SV = Segunda validação
                 let campo1SV = code.slice(0,3); //SV = campo 1 de segunda validação
-                let dv = parseInt(code.slice(3, 4)); //digito 
+                let dv = parseInt(code.slice(3, 4)); //digito verificador
                 let campo2SV = code.slice(4, 11)+campo2+campo3+campo4 //campo restante sem o DV 
                 let resultadoMultiplicacaoSV = this.multiplicacaoDv(campo1SV+campo2SV);
                 let campoSomadoSV = 0;
@@ -123,14 +111,11 @@ module.exports = {
                 dvCampoSV = 0;
                 if(restoDivisaoSV > 0) dvCampoSV = 10 - restoDivisaoSV;
                 if(dvCampoSV === dv) {
-                    console.log("Segunda validação OK");
-                    let codigoBarra = campo1+campo2+campo3+campo4;
-                    if(this.validarDVGeralConvenio(codigoBarra)) { //terceira validacao, validando o quarto dígito a partir da sequencia numérica
-                        obj.mensagem="Boleto válido!";
-                        obj.valido = true;
-                        obj.valor = ((code.slice(5, 11)+code.slice(12, 16))/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(14, 16);
-                        obj.codigoBarra = campo1+campo2+campo3+campo4
-                    }
+                    //Validou com sucesso o digito verificador
+                    obj.mensagem="Boleto válido!";
+                    obj.valido = true;
+                    obj.valor = ((code.slice(5, 11)+code.slice(12, 16))/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(14, 16);
+                    obj.codigoBarra = campo1+campo2+campo3+campo4
                 }
             }
         }
@@ -154,42 +139,33 @@ module.exports = {
         return resultadoMultiplicacao;
     },
     validarDVGeral(codigoBarraCompleto) {
-        //Tipo boleto 1 == Boleto bancario, tipoBoleto 2 == boleto convenio
         //Valida o quinto dígito do codigo de barra com o cálculo
         let codigoDVGeral = parseInt(codigoBarraCompleto.slice(4, 5));
         let codigoBarraSemDV = (codigoBarraCompleto.slice(0, 4)+codigoBarraCompleto.slice(5, codigoBarraCompleto.length)).split("");
-        console.log("Codigo barra sem DV "+codigoBarraSemDV)
         let proximoNum = 2; //de 2 a 9 (multiplicador)
         let resultadoSoma = 0;
         for(i = codigoBarraSemDV.length-1; i >= 0; i--) {
             let mult = codigoBarraSemDV[i] * proximoNum
             resultadoSoma += (mult) //multiplica e soma
-            console.log("Multiplicando "+codigoBarraSemDV[i]+" por "+proximoNum+" resultado "+mult)
             if(proximoNum == 9) proximoNum=2; else if(proximoNum < 9) proximoNum++;
         }
-        console.log("resultado soma "+resultadoSoma)
         let resto = resultadoSoma % 11;
         let resultadoDV = parseInt(11 - resto)
         if(resultadoDV === 0 || resultadoDV === 10 || resultadoDV === 11) resultadoDV = 1; //REGRA I) da página 14 - PDF Titulo.pdf
         if(codigoDVGeral === resultadoDV) return true; else return false;
     },
-    validarDVGeralConvenio(codigoBarraCompleto) {
-        //Tipo boleto 1 == Boleto bancario, tipoBoleto 2 == boleto convenio
-        //Valida o quinto dígito do codigo de barra com o cálculo
-        codigoDVGeral = parseInt(codigoBarraCompleto.slice(3,4));
-        console.log("Codigo Dv geral "+codigoDVGeral)
-        codigoBarraCompleto = codigoBarraCompleto.split("");
-        let proximoNum = 2; //de 2 a 9 (multiplicador)
-        let resultadoSoma = 0;
-        for(i = codigoBarraCompleto.length-1; i >= 0; i--) {
-            let mult = codigoBarraCompleto[i] * proximoNum
-            resultadoSoma += (mult) //multiplica e soma
-            console.log("Multiplicando "+codigoBarraCompleto[i]+" por "+proximoNum+" resultado "+mult)
-            if(proximoNum == 9) proximoNum=2; else if(proximoNum < 9) proximoNum++;
-        }
-        console.log("resultado soma "+resultadoSoma)
-        let resto = parseInt(resultadoSoma % 11);
-        console.log('RESTO encontrado '+resto)
-        if(resto === codigoDVGeral) return true; else return false;
+    formatarCodigo(linhaDigitavel) {
+        //Formata a linha digitável e retorna
+        const caracteresPermitidos = ['0','1','2','3','4','5','6','7','8','9'];
+        linhaDigitavel = linhaDigitavel.split('');
+        let novoCodigo = "";
+        linhaDigitavel.map(code => {
+            let caractereProibido = true;
+            caracteresPermitidos.map(char => {
+                if(code === char) caractereProibido = false; //se conter na array acima, o caractere atual nao é proibido
+            })
+            if(caractereProibido === false) novoCodigo += code;
+        })
+        return novoCodigo;
     }
 }
