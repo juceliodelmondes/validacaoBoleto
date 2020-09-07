@@ -91,20 +91,20 @@
                     <div id="resultados">
                         <div class="row">
                             <div class="col s6">
-                                <h5 id="mensagemResultado">Boleto válido!</h5>
+                                <h5 id="mensagemResultado"></h5>
                             </div>
                             <div class="col s6" >
-                                <h5 id="valorResultado">Valor: R$3.000,00</h5>
+                                <h5 id="valorResultado"></h5>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col s12" >
-                                <h5 id="vencimentoResultado">Vencimento: 20/02/2000</h5>
+                                <h5 id="vencimentoResultado"></h5>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col s12">
-                                <h6 id="codigoBarraResultado">Código de barra: 0123456789012345678901234567890123</h6>
+                                <h6 id="codigoBarraResultado"></h6>
                             </div>
                         </div>
                     </div>
@@ -120,10 +120,13 @@
                 axios.post("http://localhost:3000/validate", obj).then(result => {
                     if(result.status == 200) {
                         console.log(result.data)
+                        if(result.data.valido)  M.toast({html: result.data.mensagem, classes: 'rounded green'}); else 
+                        M.toast({html: result.data.mensagem, classes: 'rounded red'})
+                        
                         document.getElementById("mensagemResultado").innerHTML = result.data.mensagem
                         document.getElementById("valorResultado").innerHTML = "Valor: "+result.data.valor
                         document.getElementById("vencimentoResultado").innerHTML = "Vencimento: "+result.data.dataVencimento;
-                        document.getElementById("codigoBarraResultado").innerHTML = "Codigo de barra: "+result.data.codigoBarra;
+                        document.getElementById("codigoBarraResultado").innerHTML = "Código de barra: "+result.data.codigoBarra;
                         document.getElementById("codigo").value = result.data.linhaDigitavel;
                     }
                 })
