@@ -5,6 +5,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <meta charset="UTF-8">
+        <title>Validador de boletos</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.min.js" integrity="sha512-quHCp3WbBNkwLfYUMd+KwBAgpVukJu5MncuQaWXgCrfgcxCJAq/fo+oqrRKOj+UKEmyMCG3tb8RB63W+EmrOBg==" crossorigin="anonymous"></script>
         <style>
             .imagem {
@@ -115,7 +116,7 @@
     <script>
         const validar = () => {
             let codigo = document.getElementById("codigo").value;
-            if(codigo !== null) {
+            if(codigo !== "") {
                 let obj = {"code" : codigo}
                 axios.post("http://localhost:3000/validate", obj).then(result => {
                     if(result.status == 200) {

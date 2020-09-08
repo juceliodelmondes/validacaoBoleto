@@ -14,14 +14,14 @@ module.exports = {
         }
         if(code.length == 47) { //boleto bancário com 47 dígitos
             //separando por campos (total de 3 com DV) 
-            let campo1 = code.slice(0,9);
-            let dvCampo1 = parseInt(code.slice(9, 10));
-            let campo2 = code.slice(10, 20);
-            let dvCampo2 = parseInt(code.slice(20, 21));
-            let campo3 = code.slice(21, 31);
-            let dvCampo3 = parseInt(code.slice(31, 32));
-            let campos = (campo1+campo2+campo3).split("").map(Number); //Numeros dos campos sem o D.V de cada um. Necessário para calcular e validar se é gual ao d.v retirado acima
-            let fatorVencimento = parseInt(code.slice(33, 37));
+            const campo1 = code.slice(0,9);
+            const dvCampo1 = parseInt(code.slice(9, 10));
+            const campo2 = code.slice(10, 20);
+            const dvCampo2 = parseInt(code.slice(20, 21));
+            const campo3 = code.slice(21, 31);
+            const dvCampo3 = parseInt(code.slice(31, 32));
+            const campos = (campo1+campo2+campo3).split("").map(Number); //Numeros dos campos sem o D.V de cada um. Necessário para calcular e validar se é gual ao d.v retirado acima
+            const fatorVencimento = parseInt(code.slice(33, 37));
             //passo A (arquivo titulo.pdf) Multiplicando a sequência dos campos pelos multiplicadores, iniciando por 2 da direita para a esquerda:
             let resultadoMultiplicacao = this.multiplicacaoDv(campos);
             //Passo B (arquivo titulo.pdf) Some, individualmente, os algarismos dos resultados do produtos:
@@ -32,9 +32,9 @@ module.exports = {
             resultadoMultiplicacao.slice(19, 29).map(result => campo3Somado+=result);
             //Passo C Divida o total encontrado por 10, a fim de determinar o resto da divisão:
             //==================================
-            let restoCampo1 = campo1Somado % 10 
-            let restoCampo2 = campo2Somado % 10
-            let restoCampo3 = campo3Somado % 10
+            const restoCampo1 = campo1Somado % 10 
+            const restoCampo2 = campo2Somado % 10
+            const restoCampo3 = campo3Somado % 10
             //Passo D Subtrair o “resto” apurado pela dezena imediatamente posterior. O resultado será igual ao DV
             //=========================            
             let dezenaPosteriorCampo1 = parseInt(campo1Somado.toString().slice(0,1)+"0")+10; //captura o primeiro algarismo e concatena com 0, depois soma mais 10 e converte para int
