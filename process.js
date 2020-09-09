@@ -14,14 +14,13 @@ module.exports = {
         }
         if(code.length == 47) { //boleto bancário com 47 dígitos
             //separando por campos (total de 3 com DV) 
-            const campo1 = code.slice(0,9);
-            const dvCampo1 = parseInt(code.slice(9, 10));
-            const campo2 = code.slice(10, 20);
-            const dvCampo2 = parseInt(code.slice(20, 21));
-            const campo3 = code.slice(21, 31);
-            const dvCampo3 = parseInt(code.slice(31, 32));
+            const codeInfo = {
+                campo : [code.slice(0,9), code.slice(10, 20), code.slice(21, 31)], 
+                dv : [parseInt(code.slice(9, 10)), parseInt(code.slice(20, 21)), parseInt(code.slice(31, 32))]
+            };
             const fatorVencimento = parseInt(code.slice(33, 37));
-            if(this.validarDVCampoBancario(campo1, dvCampo1) && this.validarDVCampoBancario(campo2, dvCampo2) && this.validarDVCampoBancario(campo3, dvCampo3)){ //se os três digitos estiverem válidos            
+            if(this.validarDVCampoBancario(codeInfo.campo[0], codeInfo.dv[0]) && this.validarDVCampoBancario(codeInfo.campo[1], codeInfo.dv[1]) && this.validarDVCampoBancario(codeInfo.campo[2], codeInfo.dv[2])){
+                //se os três digitos estiverem válidos            
                 let codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
                 if(this.validarDVGeral(codigoBarra)) { //Valida o digito geral do codigo de barras, parâmetro 1 (tipo boleto bancário)
                     obj.mensagem = "Boleto válido"; 
@@ -34,36 +33,29 @@ module.exports = {
                         //soma os dias totais capturados com a data base declarada acima
                         dataBase.setDate(dataBase.getDate() + fatorVencimento) ;
                         //captura a nova data somada (dava vencimento)
-                        const dia = dataBase.getDate();
-                        const mes = dataBase.getMonth();
-                        const ano = dataBase.getFullYear();
-                        obj.dataVencimento = dia+"/"+(mes+1)+"/"+ano;
+                        obj.dataVencimento = dataBase.getDate()+"/"+(dataBase.getMonth()+1)+"/"+dataBase.getFullYear();
                     }
                 }
             }
         } else if(code.length == 48) { //boleto convenio com 48 dígitos
-            const campo1 = code.slice(0, 11);
-            const dvCampo1 = parseInt(code.slice(11, 12));
-            const campo2 = code.slice(12, 23);
-            const dvCampo2 = parseInt(code.slice(23, 24));
-            const campo3 = code.slice(24,35);
-            const dvCampo3 = parseInt(code.slice(35, 36));
-            const campo4 = code.slice(36, 47);
-            const dvCampo4 = parseInt(code.slice(47, 48));
+            let codeInfo = {
+                campo : [code.slice(0, 11), code.slice(12, 23), code.slice(24,35), code.slice(36, 47)],
+                dv : [parseInt(code.slice(11, 12)), parseInt(code.slice(23, 24)), parseInt(code.slice(35, 36)),parseInt(code.slice(47, 48))]
+            };
             //Validando cada campo individualmente com seu dv página 14 do arquivo Convenio.pdf
-            if(this.validarDVCampoConvenio(campo1, dvCampo1) && this.validarDVCampoConvenio(campo2,dvCampo2) && 
-            this.validarDVCampoConvenio(campo3, dvCampo3) && this.validarDVCampoConvenio(campo4, dvCampo4)) {
+            if(this.validarDVCampoConvenio(codeInfo.campo[0], codeInfo.dv[0]) && this.validarDVCampoConvenio(codeInfo.campo[1],codeInfo.dv[1]) && 
+            this.validarDVCampoConvenio(codeInfo.campo[2], codeInfo.dv[2]) && this.validarDVCampoConvenio(codeInfo.campo[3], codeInfo.dv[3])) {
                 //Validacao do quarto dígito - MODULO 10 - página 15 do arquivo Convenio.pdf
                 //SV = Segunda validação
                 let campo1SV = code.slice(0,3); //SV = campo 1 de segunda validação
                 let dv = parseInt(code.slice(3, 4)); //digito verificador
-                let campo2SV = code.slice(4, 11)+campo2+campo3+campo4 //campo restante sem o DV
+                let campo2SV = code.slice(4, 11)+codeInfo.campo[1]+codeInfo.campo[2]+codeInfo.campo[3]; //campo restante sem o DV
                 if(this.validarDVCampoConvenio(campo1SV+campo2SV, dv)) {
                     //Validou com sucesso o digito verificador
                     obj.mensagem="Boleto válido!";
                     obj.valido = true;
                     obj.valor = ((code.slice(5, 11)+code.slice(12, 16))/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(14, 16);
-                    obj.codigoBarra = campo1+campo2+campo3+campo4
+                    obj.codigoBarra = codeInfo.campo[0]+codeInfo.campo[1]+codeInfo.campo[2]+codeInfo.campo[3];
                 }
             }
         }
