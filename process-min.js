@@ -1,10 +1,8 @@
+//Menor versão possível do arquivo process.js
 module.exports = {
-    validate(code){ //code será a linha digitável
+    validate(code){
         code = this.formatarCodigo(code);
-        //Regra de negócio para a validação
-        //Variáveis inicializadas com mensagem de erro para evitar um código extenso. Em caso de sucesso, será alterada 
         let obj = {
-            //objeto de retorno
             "mensagem" : "Código inválido!",
             "valido" : false,
             "valor" : 0,
@@ -12,57 +10,28 @@ module.exports = {
             "codigoBarra" : 0,
             "linhaDigitavel" : code
         }
-        if(code.length == 47) { //boleto bancário com 47 dígitos
-            //separando por campos (total de 3 com DV) 
-            const campo1 = code.slice(0,9);
-            const dvCampo1 = parseInt(code.slice(9, 10));
-            const campo2 = code.slice(10, 20);
-            const dvCampo2 = parseInt(code.slice(20, 21));
-            const campo3 = code.slice(21, 31);
-            const dvCampo3 = parseInt(code.slice(31, 32));
-            const campos = (campo1+campo2+campo3).split("").map(Number); //Numeros dos campos sem o D.V de cada um. Necessário para calcular e validar se é gual ao d.v retirado acima
-            const fatorVencimento = parseInt(code.slice(33, 37));
-            //passo A (arquivo titulo.pdf) Multiplicando a sequência dos campos pelos multiplicadores, iniciando por 2 da direita para a esquerda:
+        if(code.length == 47) {
+            const infoCode = {campo : [code.slice(0,9), code.slice(10, 20), code.slice(21, 31)], dvCampo : [parseInt(code.slice(9, 10)), parseInt(code.slice(20, 21)), parseInt(code.slice(31, 32))]};
+            const campos = (infoCode.campo[0]+infoCode.campo[1]+infoCode.campo[2]).split("").map(Number);
             let resultadoMultiplicacao = this.multiplicacaoDv(campos);
-            //Passo B (arquivo titulo.pdf) Some, individualmente, os algarismos dos resultados do produtos:
-            //========================================================
             let campo1Somado = 0, campo2Somado = 0, campo3Somado = 0;
             resultadoMultiplicacao.slice(0, 9).map(result => campo1Somado+=result);
             resultadoMultiplicacao.slice(9, 19).map(result => campo2Somado+=result);
             resultadoMultiplicacao.slice(19, 29).map(result => campo3Somado+=result);
-            //Passo C Divida o total encontrado por 10, a fim de determinar o resto da divisão:
-            //==================================
-            const restoCampo1 = campo1Somado % 10 
-            const restoCampo2 = campo2Somado % 10
-            const restoCampo3 = campo3Somado % 10
-            //Passo D Subtrair o “resto” apurado pela dezena imediatamente posterior. O resultado será igual ao DV
-            //=========================            
-            let dezenaPosteriorCampo1 = parseInt(campo1Somado.toString().slice(0,1)+"0")+10; //captura o primeiro algarismo e concatena com 0, converte para int esoma mais 10
-            let dezenaPosteriorCampo2 = parseInt(campo2Somado.toString().slice(0,1)+"0")+10;
-            let dezenaPosteriorCampo3 = parseInt(campo3Somado.toString().slice(0,1)+"0")+10;
-            //Substraindo dezena posterior com resto e capturando segundo algarismo (D.V)
-            let dvCampo1Calculo = parseInt(parseInt(dezenaPosteriorCampo1-restoCampo1).toString().slice(1,2));
-            let dvCampo2Calculo = parseInt(parseInt(dezenaPosteriorCampo2-restoCampo2).toString().slice(1,2));
-            let dvCampo3Calculo = parseInt(parseInt(dezenaPosteriorCampo3-restoCampo3).toString().slice(1,2));
-            if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3) { //se os quatros digitos verificadors estiverem válidos
+            let dvCampo1Calculo = parseInt(parseInt((parseInt(campo1Somado.toString().slice(0,1)+"0")+10)-(campo1Somado % 10 )).toString().slice(1,2));
+            let dvCampo2Calculo = parseInt(parseInt((parseInt(campo2Somado.toString().slice(0,1)+"0")+10)-(campo2Somado % 10 )).toString().slice(1,2));
+            let dvCampo3Calculo = parseInt(parseInt((parseInt(campo3Somado.toString().slice(0,1)+"0")+10)-(campo3Somado % 10 )).toString().slice(1,2));
+            if(dvCampo1Calculo === infoCode.dvCampo[0] && dvCampo2Calculo === infoCode.dvCampo[1] && dvCampo3Calculo === infoCode.dvCampo[2]) {
                 let codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
-                if(this.validarDVGeral(codigoBarra)) { //Valida o digito geral do codigo de barras, parâmetro 1 (tipo boleto bancário)
+                if(this.validarDVGeral(codigoBarra)) {
                     obj.mensagem = "Boleto válido";
                     obj.valido = true;
-                    obj.codigoBarra = codigoBarra;
-                     //Calculando valor do boleto
-                    //Divide por 100 para separar os centavos                 
+                    obj.codigoBarra = codigoBarra;               
                     obj.valor = (code.slice(37, 47)/100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\,/g, ".").replace(/\.+\d{2}$/g, ",")+code.slice(45, 47);
-                    //Cálculo de vencimento
-                    if(fatorVencimento !== 0000) {
+                    if(parseInt(code.slice(33, 37)) !== 0000) { //fator vencimento
                         let dataBase = new Date("1997/10/07");
-                        //soma os dias totais capturados com a data base declarada acima
-                        dataBase.setDate(dataBase.getDate() + fatorVencimento) ;
-                        //captura a nova data somada (dava vencimento)
-                        const dia = dataBase.getDate();
-                        const mes = dataBase.getMonth();
-                        const ano = dataBase.getFullYear();
-                        obj.dataVencimento = dia+"/"+(mes+1)+"/"+ano;
+                        dataBase.setDate(dataBase.getDate() + parseInt(code.slice(33, 37)));
+                        obj.dataVencimento = dataBase.getDate()+"/"+(dataBase.getMonth()+1)+"/"+dataBase.getFullYear();
                     }
                 }
             }

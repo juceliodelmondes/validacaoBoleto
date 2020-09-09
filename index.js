@@ -1,5 +1,5 @@
 const express = require('express');
-const process = require('./process');
+const process = require('./process-min');
 const http = require('http');
 const fs = require('fs');
 const cors = require('cors');
