@@ -22,4 +22,5 @@ var httpServer = http.createServer(function (request, response) {
 server.listen(3000);
 httpServer.listen(3001);
 
-console.log("Servidor iniciado")
+console.log("API inicializada: http://localhost:3000");
+console.log("Página html disponível em: http://localhost:3001");
