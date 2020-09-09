@@ -21,7 +21,7 @@ module.exports = {
             const campo3 = code.slice(21, 31);
             const dvCampo3 = parseInt(code.slice(31, 32));
             const fatorVencimento = parseInt(code.slice(33, 37));
-            if(this.validarDVCampo(campo1, dvCampo1) && this.validarDVCampo(campo2, dvCampo2) && this.validarDVCampo(campo3, dvCampo3)){ //se os três digitos estiverem válidos            
+            if(this.validarDVCampoBancario(campo1, dvCampo1) && this.validarDVCampoBancario(campo2, dvCampo2) && this.validarDVCampoBancario(campo3, dvCampo3)){ //se os três digitos estiverem válidos            
                 let codigoBarra = code.slice(0, 4)+code.slice(32, 47)+code.slice(4, 9)+code.slice(10, 20)+code.slice(21, 31);
                 if(this.validarDVGeral(codigoBarra)) { //Valida o digito geral do codigo de barras, parâmetro 1 (tipo boleto bancário)
                     obj.mensagem = "Boleto válido"; 
@@ -50,44 +50,15 @@ module.exports = {
             const dvCampo3 = parseInt(code.slice(35, 36));
             const campo4 = code.slice(36, 47);
             const dvCampo4 = parseInt(code.slice(47, 48));
-            //Primeira validacao (MODULO 10)
-            //Validação dos quatros dígitos (DV) - página 14 do arquivo Convenio.pdf
-            let resultadoMultiplicacaoCampo1 = this.multiplicacaoDv(campo1);
-            let resultadoMultiplicacaoCampo2 = this.multiplicacaoDv(campo2);
-            let resultadoMultiplicacaoCampo3 = this.multiplicacaoDv(campo3);
-            let resultadoMultiplicacaoCampo4 = this.multiplicacaoDv(campo4);
-            //soma todos os algarismos do resultado da multiplicação
-            let campo1Somado = 0, campo2Somado = 0, campo3Somado = 0, campo4Somado = 0;
-            resultadoMultiplicacaoCampo1.forEach(result => campo1Somado+=result);
-            resultadoMultiplicacaoCampo2.forEach(result => campo2Somado+=result);
-            resultadoMultiplicacaoCampo3.forEach(result => campo3Somado+=result);
-            resultadoMultiplicacaoCampo4.forEach(result => campo4Somado+=result);
-            //captura o resto da divisao para depois subtrair com 10
-            let restoDVCampo1 = parseInt(campo1Somado % 10)
-            let restoDVCampo2 = parseInt(campo2Somado % 10)
-            let restoDVCampo3 = parseInt(campo3Somado % 10)
-            let restoDVCampo4 = parseInt(campo4Somado % 10)
-            let dvCampo1Calculo = 0, dvCampo2Calculo = 0, dvCampo3Calculo = 0, dvCampo4Calculo = 0;
-            //Se o resto for 0, o numero não vai ser subtraído com 10
-            if(restoDVCampo1 > 0) dvCampo1Calculo = 10 - restoDVCampo1;
-            if(restoDVCampo2 > 0) dvCampo2Calculo = 10 - restoDVCampo2;
-            if(restoDVCampo3 > 0) dvCampo3Calculo = 10 - restoDVCampo3;
-            if(restoDVCampo4 > 0) dvCampo4Calculo = 10 - restoDVCampo4;
-            if(dvCampo1Calculo === dvCampo1 && dvCampo2Calculo === dvCampo2 && dvCampo3Calculo === dvCampo3 && dvCampo4Calculo === dvCampo4) {
+            //Validando cada campo individualmente com seu dv página 14 do arquivo Convenio.pdf
+            if(this.validarDVCampoConvenio(campo1, dvCampo1) && this.validarDVCampoConvenio(campo2,dvCampo2) && 
+            this.validarDVCampoConvenio(campo3, dvCampo3) && this.validarDVCampoConvenio(campo4, dvCampo4)) {
                 //Validacao do quarto dígito - MODULO 10 - página 15 do arquivo Convenio.pdf
                 //SV = Segunda validação
                 let campo1SV = code.slice(0,3); //SV = campo 1 de segunda validação
                 let dv = parseInt(code.slice(3, 4)); //digito verificador
                 let campo2SV = code.slice(4, 11)+campo2+campo3+campo4 //campo restante sem o DV
-                let campos = (campo1SV+campo2SV).split("").map(Number);
-                console.log("a" +campos);
-                let resultadoMultiplicacaoSV = this.multiplicacaoDv(campo1SV+campo2SV);
-                let campoSomadoSV = 0;
-                resultadoMultiplicacaoSV.map(result => {campoSomadoSV += result})
-                let restoDivisaoSV = parseInt(campoSomadoSV % 10);
-                dvCampoSV = 0;
-                if(restoDivisaoSV > 0) dvCampoSV = 10 - restoDivisaoSV;
-                if(dvCampoSV === dv) {
+                if(this.validarDVCampoConvenio(campo1SV+campo2SV, dv)) {
                     //Validou com sucesso o digito verificador
                     obj.mensagem="Boleto válido!";
                     obj.valido = true;
@@ -98,13 +69,12 @@ module.exports = {
         }
         return obj;
     },
-    validarDVCampo(campo, dv) {
-        //retorna se o dv é valido com a sequencia numérica do campo
-        campo = campo.split('').map(Number);
+    validarDVCampoBancario(campo, dv) {
+        //retorna se o dv é valido com a sequencia numérica do campo (boleto)
         let mult = this.multiplicacaoDv(campo);
         let soma = 0;
         //soma todos os algarismos da multiplicacao
-        mult.slice(0, mult.length).forEach(result => soma+=result);
+        mult.forEach(result => soma+=result);
         //Passo C Divida o total encontrado por 10, a fim de determinar o resto da divisão:
         const resto = parseInt(soma % 10);
         //Passo D Subtrair o “resto” apurado pela dezena imediatamente posterior. O resultado será igual ao DV
@@ -113,9 +83,21 @@ module.exports = {
         const dvFinal = parseInt((dezenaPosterior-resto).toString().slice(1,2))
         return dvFinal === dv;
     },
+    validarDVCampoConvenio(campo, dv) {
+        let mult = this.multiplicacaoDv(campo);
+        let soma = 0;
+        //soma todos os algarismos da multiplicação
+        mult.forEach(result => soma+=result);
+        //captura o resto da divisao para depois subtrair com 10
+        const resto = parseInt(soma % 10);
+        let dvFinal = 0
+        //Se o resto for 0, o numero não vai ser subtraído com 10
+        if(resto > 0) dvFinal = 10 - resto;
+        return dvFinal === dv;
+    },
     //realiza a multiplicacao da direita para a esquerda na ordem 2,1,2,1,2,1....
     multiplicacaoDv(sequencia) {
-        console.log(sequencia);
+        sequencia = sequencia.split('').map(Number);
         return sequencia.reverse().map((seq, i) => {
             if (i % 2 === 0 ){ 
                 let temp = seq * 2
