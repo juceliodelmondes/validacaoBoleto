@@ -63,20 +63,20 @@ module.exports = {
     },
     validarDVCampoBancario(campo, dv) {
         //retorna se o dv é valido com a sequencia numérica do campo (boleto)
-        let mult = this.multiplicacaoDv(campo);
+        const mult = this.multiplicacaoDv(campo);
         let soma = 0;
         //soma todos os algarismos da multiplicacao
         mult.forEach(result => soma+=result);
         //Passo C Divida o total encontrado por 10, a fim de determinar o resto da divisão:
         const resto = parseInt(soma % 10);
         //Passo D Subtrair o “resto” apurado pela dezena imediatamente posterior. O resultado será igual ao DV
-        let dezenaPosterior = parseInt(soma.toString().slice(0,1)+"0")+10; //captura o primeiro algarismo e concatena com 0, converte para int esoma mais 10
+        const dezenaPosterior = parseInt(soma.toString().slice(0,1)+"0")+10; //captura o primeiro algarismo e concatena com 0, converte para int esoma mais 10
         //Substraindo dezena posterior com resto e capturando segundo algarismo (D.V)
         const dvFinal = parseInt((dezenaPosterior-resto).toString().slice(1,2))
         return dvFinal === dv;
     },
     validarDVCampoConvenio(campo, dv) {
-        let mult = this.multiplicacaoDv(campo);
+        const mult = this.multiplicacaoDv(campo);
         let soma = 0;
         //soma todos os algarismos da multiplicação
         mult.forEach(result => soma+=result);
@@ -113,6 +113,6 @@ module.exports = {
         let resto = resultadoSoma % 11;
         let resultadoDV = parseInt(11 - resto)
         if(resultadoDV === 0 || resultadoDV === 10 || resultadoDV === 11) resultadoDV = 1; //REGRA I) da página 14 - PDF Titulo.pdf
-        if(codigoDVGeral === resultadoDV) return true; else return false;
+        return codigoDVGeral === resultadoDV;
     }
 }
